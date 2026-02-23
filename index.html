@@ -28,7 +28,6 @@
             bottom: 0;
         }
 
-        /* ОПТИМИЗИРОВАННЫЙ КОНТЕЙНЕР С АППАРАТНЫМ УСКОРЕНИЕМ */
         .top-title {
             position: absolute;
             top: max(15px, env(safe-area-inset-top, 15px));
@@ -54,7 +53,6 @@
             100% { opacity: 0.55; text-shadow: 0 0 25px #3a8ab0; }
         }
 
-        /* СНЕГ - АППАРАТНОЕ УСКОРЕНИЕ */
         #snowCanvas {
             position: fixed;
             top: 0;
@@ -134,6 +132,17 @@
             line-height: 1.2;
         }
 
+        /* Финальный вариант "хуя..." с троеточием */
+        .line3-final {
+            font-size: clamp(2.8rem, 12vw, 6.5rem);
+            font-weight: 900;
+            letter-spacing: clamp(8px, 3vw, 16px);
+            text-transform: lowercase;
+            color: #fff;
+            text-shadow: 0 0 40px #4aa5df;
+            line-height: 1.2;
+        }
+
         .visible {
             opacity: 1 !important;
             filter: blur(0) brightness(1.2) !important;
@@ -199,7 +208,6 @@
             transform: translateZ(0);
         }
 
-        /* МОДАЛЬНОЕ ОКНО - ОПТИМИЗИРОВАНО */
         .modal {
             position: absolute;
             top: 50%;
@@ -263,7 +271,6 @@
             flex-wrap: wrap;
         }
 
-        /* КНОПКИ - ОПТИМИЗИРОВАНЫ */
         .modal-btn {
             padding: min(14px, 3vw) min(20px, 4vw);
             font-size: clamp(1.2rem, 4.5vw, 1.6rem);
@@ -320,7 +327,6 @@
             background: rgba(20, 55, 80, 0.95);
         }
 
-        /* ПОЛОМКА - ПЛАВНО */
         .btn-no.broken {
             animation: breakAnimation 1s forwards !important;
             pointer-events: none;
@@ -373,7 +379,6 @@
             background: transparent;
         }
 
-        /* Адаптация */
         @media (max-width: 380px) {
             .modal-buttons {
                 flex-direction: column;
@@ -415,6 +420,7 @@
         <div class="line line1" id="line1">она сказала "не, нихуя"</div>
         <div class="line line2" id="line2">а он ответил...</div>
         <div class="line line3" id="line3">ХУЯ, ХУЯ.</div>
+        <div class="line line3" id="line3Final" style="display: none;">хуя...</div>
     </div>
 
     <div class="modal" id="questionModal">
@@ -438,7 +444,7 @@
         (function() {
             "use strict";
             
-            // ========== ОПТИМИЗИРОВАННЫЙ СНЕГОПАД ==========
+            // ========== СНЕГОПАД ==========
             const canvas = document.getElementById('snowCanvas');
             const ctx = canvas.getContext('2d');
             let width, height;
@@ -446,7 +452,6 @@
             let animationFrame;
             let isVisible = true;
             let lastTime = 0;
-            const TARGET_FPS = 30; // Ограничиваем для мобильных
             
             function initCanvas() {
                 width = window.innerWidth;
@@ -454,8 +459,6 @@
                 canvas.width = width;
                 canvas.height = height;
 
-                // Адаптивное количество частиц
-                const pixelRatio = window.devicePixelRatio || 1;
                 const isSlowDevice = width < 380 || /iPhone|iPod|Android/.test(navigator.userAgent);
                 const particleCount = isSlowDevice ? 150 : (width < 600 ? 200 : 300);
                 
@@ -475,8 +478,7 @@
             function drawSnow(now) {
                 if (!isVisible) return;
                 
-                // FPS control
-                if (now - lastTime < 33) { // ~30fps
+                if (now - lastTime < 33) {
                     animationFrame = requestAnimationFrame(drawSnow);
                     return;
                 }
@@ -504,7 +506,6 @@
                 animationFrame = requestAnimationFrame(drawSnow);
             }
 
-            // Остановка анимации при неактивности
             document.addEventListener('visibilitychange', () => {
                 isVisible = !document.hidden;
                 if (isVisible) {
@@ -516,7 +517,6 @@
                 }
             });
 
-            // Дебаунс ресайза
             let resizeTimeout;
             window.addEventListener('resize', () => {
                 clearTimeout(resizeTimeout);
@@ -534,6 +534,15 @@
             const line2 = document.getElementById('line2');
             const line3 = document.getElementById('line3');
             
+            // Создаем элемент для финального "хуя..."
+            const line3Final = document.createElement('div');
+            line3Final.className = 'line line3';
+            line3Final.id = 'line3Final';
+            line3Final.textContent = 'хуя...';
+            line3Final.style.fontSize = 'clamp(2.8rem, 12vw, 6.5rem)';
+            line3Final.style.textTransform = 'lowercase';
+            textContainer.appendChild(line3Final);
+            
             let sceneTimer;
 
             function clearTimers() {
@@ -544,6 +553,7 @@
                 line1.classList.remove('visible');
                 line2.classList.remove('visible');
                 line3.classList.remove('visible');
+                line3Final.classList.remove('visible');
             }
 
             function showFinalSequence() {
@@ -551,13 +561,15 @@
                 resetLines();
                 textContainer.classList.remove('hidden');
                 
+                // Показываем "а ведь он тебе говорил..."
                 line2.textContent = 'а ведь он тебе говорил...';
                 line2.classList.add('visible');
                 
                 sceneTimer = setTimeout(() => {
                     line2.classList.remove('visible');
                     sceneTimer = setTimeout(() => {
-                        line3.classList.add('visible');
+                        // Показываем "хуя..." с троеточием
+                        line3Final.classList.add('visible');
                     }, 400);
                 }, 2800);
             }
@@ -575,7 +587,11 @@
                 }, 2800);
                 sceneTimer = setTimeout(() => {
                     line2.classList.remove('visible');
-                    sceneTimer = setTimeout(() => line3.classList.add('visible'), 400);
+                    sceneTimer = setTimeout(() => {
+                        // Показываем "ХУЯ, ХУЯ" (оригинал)
+                        line3.textContent = 'ХУЯ, ХУЯ';
+                        line3.classList.add('visible');
+                    }, 400);
                 }, 5500);
                 sceneTimer = setTimeout(() => showModal(), 10500);
             }
@@ -651,12 +667,10 @@
             starter.addEventListener('click', enableAudio);
             starter.addEventListener('touchstart', enableAudio, { passive: true });
 
-            // Старт
             window.addEventListener('load', () => {
                 setTimeout(startScene, 800);
             });
 
-            // Очистка при уходе
             window.addEventListener('beforeunload', () => {
                 if (animationFrame) {
                     cancelAnimationFrame(animationFrame);
